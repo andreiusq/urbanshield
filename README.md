@@ -20,29 +20,7 @@ Sistemul modeleaza incidente reale, aloca echipe de interventie, gestioneaza res
 - simulare a evolutiei crizei pe intervale de timp
 - generare de rapoarte operationale
 
-## Build si rulare
-
-Proiectul este configurat cu CMake.
-
-Configurare:
-
-```sh
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
-```
-
-Compilare:
-
-```sh
-cmake --build build --config Debug --parallel
-```
-
-Rulare:
-
-```sh
-./build/oop
-```
-
-## Checklist cerinte pe etape
+## Checklist momentan
 
 ### T1
 
