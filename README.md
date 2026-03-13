@@ -24,12 +24,12 @@ Sistemul modeleaza incidente reale, aloca echipe de interventie, gestioneaza res
 
 ### T1
 
-- [ ] minim 3-4 clase prin compunere
-- [ ] constructori de initializare pentru toate clasele
-- [ ] regula celor 3 pentru cel putin o clasa
-- [ ] `operator<<` pentru toate clasele
-- [ ] minim 3 functii membru netriviale (1-2 complexe)
-- [ ] scenariu coerent in `main`
+- [x] minim 3-4 clase prin compunere (5 clase: Locatie, Resursa, EchipaInterventie, Incident, CentruComanda)
+- [x] constructori de initializare pentru toate clasele
+- [x] regula celor 3 pentru cel putin o clasa (EchipaInterventie)
+- [x] `operator<<` pentru toate clasele (cu compunere de apeluri)
+- [x] minim 3 functii membru netriviale (1-2 complexe): prioritizare, alocare inteligenta, simulare evolutie, raport
+- [x] scenariu coerent in `main`
 
 ### T2
 
