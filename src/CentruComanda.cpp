@@ -144,7 +144,7 @@ void CentruComanda::simuleazaEvolutie(int pasi) {
             }
 
             // incidentele critice (sev >= 4): realoc urgenta
-            if (inc.getSeveritate() >= 4 && !inc.esteRezolvat()) {
+            if (inc.getSeveritate() >= 4) {
                 alocaEchipaLaIncident(inc.getId());
             }
         }

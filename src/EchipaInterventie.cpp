@@ -41,6 +41,7 @@ bool EchipaInterventie::esteDisponibila() const { return disponibila; }
 
 void EchipaInterventie::adaugaResursa(const Resursa& r) {
     resurse.push_back(r);
+    disponibila = areResurseMinime();
 }
 
 void EchipaInterventie::seteazaDisponibila(bool status) {
@@ -67,8 +68,7 @@ void EchipaInterventie::alocaResurse(const std::string& tip, int cant) {
     for (auto& r : resurse) {
         if (r.getDenumire() == tip) {
             r.consuma(cant);
-            if (!areResurseMinime())
-                disponibila = false;
+            disponibila = areResurseMinime();
             return;
         }
     }
