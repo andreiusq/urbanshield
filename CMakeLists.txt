@@ -30,6 +30,14 @@ include(FetchContent)
 set(FETCHCONTENT_QUIET OFF CACHE INTERNAL "Override verbose output" FORCE)
 set(FETCHCONTENT_UPDATES_DISCONNECTED ON CACHE INTERNAL "Override update strategy" FORCE)
 
+# Proiectul foloseste doar Graphics/Window/System din SFML.
+# Dezactivam modulele nefolosite ca sa evitam dependinte native inutile in CI.
+set(SFML_BUILD_AUDIO OFF CACHE BOOL "Build SFML audio module" FORCE)
+set(SFML_BUILD_NETWORK OFF CACHE BOOL "Build SFML network module" FORCE)
+set(SFML_BUILD_EXAMPLES OFF CACHE BOOL "Build SFML examples" FORCE)
+set(SFML_BUILD_DOC OFF CACHE BOOL "Build SFML documentation" FORCE)
+set(SFML_BUILD_TEST_SUITE OFF CACHE BOOL "Build SFML test suite" FORCE)
+
 # NOTE: Also update env vars used for caching in
 #     - .github/actions/configure-cmake/action.yml
 #     - .github/workflows/cmake.yml

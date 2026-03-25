@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="E:\urbanshield\build-cmake-verify\CMakeFiles\765e35e74b9708f133c7db65561169f6\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{CAB8F992-0C0C-3042-A895-D21EDBAA39D3}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
