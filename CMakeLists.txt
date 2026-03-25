@@ -24,108 +24,110 @@ include(cmake/CopyHelper.cmake)
 
 ###############################################################################
 
-# external dependencies with FetchContent
-include(FetchContent)
+if(BUILD_GUI)
+    # external dependencies with FetchContent
+    include(FetchContent)
 
-set(FETCHCONTENT_QUIET OFF CACHE INTERNAL "Override verbose output" FORCE)
-set(FETCHCONTENT_UPDATES_DISCONNECTED ON CACHE INTERNAL "Override update strategy" FORCE)
+    set(FETCHCONTENT_QUIET OFF CACHE INTERNAL "Override verbose output" FORCE)
+    set(FETCHCONTENT_UPDATES_DISCONNECTED ON CACHE INTERNAL "Override update strategy" FORCE)
 
-# Proiectul foloseste doar Graphics/Window/System din SFML.
-# Dezactivam modulele nefolosite ca sa evitam dependinte native inutile in CI.
-set(SFML_BUILD_AUDIO OFF CACHE BOOL "Build SFML audio module" FORCE)
-set(SFML_BUILD_NETWORK OFF CACHE BOOL "Build SFML network module" FORCE)
-set(SFML_BUILD_EXAMPLES OFF CACHE BOOL "Build SFML examples" FORCE)
-set(SFML_BUILD_DOC OFF CACHE BOOL "Build SFML documentation" FORCE)
-set(SFML_BUILD_TEST_SUITE OFF CACHE BOOL "Build SFML test suite" FORCE)
+    # Proiectul foloseste doar Graphics/Window/System din SFML.
+    # Dezactivam modulele nefolosite ca sa evitam dependinte native inutile in CI.
+    set(SFML_BUILD_AUDIO OFF CACHE BOOL "Build SFML audio module" FORCE)
+    set(SFML_BUILD_NETWORK OFF CACHE BOOL "Build SFML network module" FORCE)
+    set(SFML_BUILD_EXAMPLES OFF CACHE BOOL "Build SFML examples" FORCE)
+    set(SFML_BUILD_DOC OFF CACHE BOOL "Build SFML documentation" FORCE)
+    set(SFML_BUILD_TEST_SUITE OFF CACHE BOOL "Build SFML test suite" FORCE)
 
-# NOTE: Also update env vars used for caching in
-#     - .github/actions/configure-cmake/action.yml
-#     - .github/workflows/cmake.yml
+    # NOTE: Also update env vars used for caching in
+    #     - .github/actions/configure-cmake/action.yml
+    #     - .github/workflows/cmake.yml
 
-# SFML 2.6.x
-FetchContent_Declare(
-    SFML
-    GIT_REPOSITORY https://github.com/SFML/SFML.git
-    GIT_TAG        2.6.x
-    GIT_SHALLOW    1
-    GIT_PROGRESS   ON
-    SYSTEM
-)
+    # SFML 2.6.x
+    FetchContent_Declare(
+        SFML
+        GIT_REPOSITORY https://github.com/SFML/SFML.git
+        GIT_TAG        2.6.x
+        GIT_SHALLOW    1
+        GIT_PROGRESS   ON
+        SYSTEM
+    )
 
-# Dear ImGui
-FetchContent_Declare(
-    ImGui
-    GIT_REPOSITORY https://github.com/ocornut/imgui.git
-    GIT_TAG        v1.91.1
-    GIT_SHALLOW    1
-    GIT_PROGRESS   ON
-    SYSTEM
-)
+    # Dear ImGui
+    FetchContent_Declare(
+        ImGui
+        GIT_REPOSITORY https://github.com/ocornut/imgui.git
+        GIT_TAG        v1.91.1
+        GIT_SHALLOW    1
+        GIT_PROGRESS   ON
+        SYSTEM
+    )
 
-# ImGui-SFML (official binding)
-FetchContent_Declare(
-    ImGuiSFML
-    GIT_REPOSITORY https://github.com/SFML/imgui-sfml.git
-    GIT_TAG        2.6.x
-    GIT_SHALLOW    1
-    GIT_PROGRESS   ON
-    SYSTEM
-)
+    # ImGui-SFML (official binding)
+    FetchContent_Declare(
+        ImGuiSFML
+        GIT_REPOSITORY https://github.com/SFML/imgui-sfml.git
+        GIT_TAG        2.6.x
+        GIT_SHALLOW    1
+        GIT_PROGRESS   ON
+        SYSTEM
+    )
 
-# Populeaza SFML, ImGui si ImGui-SFML manual
-# SFML se adauga via add_subdirectory -> expune targets (sfml-graphics etc.) direct
-# ImGui-SFML se compileaza manual (un singur .cpp) linkand la targets SFML
-FetchContent_GetProperties(SFML)
-if(NOT sfml_POPULATED)
-    FetchContent_Populate(SFML)
-    add_subdirectory(${sfml_SOURCE_DIR} ${sfml_BINARY_DIR} EXCLUDE_FROM_ALL)
+    # Populeaza SFML, ImGui si ImGui-SFML manual
+    # SFML se adauga via add_subdirectory -> expune targets (sfml-graphics etc.) direct
+    # ImGui-SFML se compileaza manual (un singur .cpp) linkand la targets SFML
+    FetchContent_GetProperties(SFML)
+    if(NOT sfml_POPULATED)
+        FetchContent_Populate(SFML)
+        add_subdirectory(${sfml_SOURCE_DIR} ${sfml_BINARY_DIR} EXCLUDE_FROM_ALL)
+    endif()
+
+    FetchContent_GetProperties(ImGui)
+    if(NOT imgui_POPULATED)
+        FetchContent_Populate(ImGui)
+    endif()
+
+    FetchContent_GetProperties(ImGuiSFML)
+    if(NOT imguisfml_POPULATED)
+        FetchContent_Populate(ImGuiSFML)
+        # Fix compatibilitate C++23/MSVC: sf::U8String -> auto
+        file(READ "${imguisfml_SOURCE_DIR}/imgui-SFML.cpp" IMGUI_SFML_SRC)
+        string(REPLACE
+            "std::basic_string<std::uint8_t> tmp = sf::Clipboard::getString().toUtf8();"
+            "auto tmp = sf::Clipboard::getString().toUtf8();"
+            IMGUI_SFML_SRC "${IMGUI_SFML_SRC}")
+        file(WRITE "${imguisfml_SOURCE_DIR}/imgui-SFML.cpp" "${IMGUI_SFML_SRC}")
+    endif()
+
+    # Creeaza o biblioteca ImGui-SFML manual (ocoleste find_package din CMakeLists.txt propriu)
+    add_library(ImGui-SFML STATIC
+        ${imguisfml_SOURCE_DIR}/imgui-SFML.cpp
+        ${imgui_SOURCE_DIR}/imgui.cpp
+        ${imgui_SOURCE_DIR}/imgui_draw.cpp
+        ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+        ${imgui_SOURCE_DIR}/imgui_tables.cpp
+        ${imgui_SOURCE_DIR}/imgui_demo.cpp
+    )
+    target_include_directories(ImGui-SFML SYSTEM PUBLIC
+        ${imgui_SOURCE_DIR}
+        ${imguisfml_SOURCE_DIR}
+    )
+    target_link_libraries(ImGui-SFML PUBLIC
+        sfml-graphics
+        sfml-window
+        sfml-system
+    )
+    target_compile_definitions(ImGui-SFML PUBLIC IMGUI_USER_CONFIG="${imguisfml_SOURCE_DIR}/imconfig-SFML.h")
+    # Suprima warning-urile din bibliotecile externe
+    if(MSVC)
+        target_compile_options(ImGui-SFML PRIVATE /W0)
+    else()
+        target_compile_options(ImGui-SFML PRIVATE -w)
+    endif()
+    # ImGui-SFML.cpp are un bug cu C++23/MSVC: sf::U8String nu e convertibil la std::basic_string<uint8_t>
+    # Fix: patch direct in sursa (un reinterpret al tipului)
+    target_compile_definitions(ImGui-SFML PRIVATE _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING)
 endif()
-
-FetchContent_GetProperties(ImGui)
-if(NOT imgui_POPULATED)
-    FetchContent_Populate(ImGui)
-endif()
-
-FetchContent_GetProperties(ImGuiSFML)
-if(NOT imguisfml_POPULATED)
-    FetchContent_Populate(ImGuiSFML)
-    # Fix compatibilitate C++23/MSVC: sf::U8String -> auto
-    file(READ "${imguisfml_SOURCE_DIR}/imgui-SFML.cpp" IMGUI_SFML_SRC)
-    string(REPLACE
-        "std::basic_string<std::uint8_t> tmp = sf::Clipboard::getString().toUtf8();"
-        "auto tmp = sf::Clipboard::getString().toUtf8();"
-        IMGUI_SFML_SRC "${IMGUI_SFML_SRC}")
-    file(WRITE "${imguisfml_SOURCE_DIR}/imgui-SFML.cpp" "${IMGUI_SFML_SRC}")
-endif()
-
-# Creeaza o biblioteca ImGui-SFML manual (ocoleste find_package din CMakeLists.txt propriu)
-add_library(ImGui-SFML STATIC
-    ${imguisfml_SOURCE_DIR}/imgui-SFML.cpp
-    ${imgui_SOURCE_DIR}/imgui.cpp
-    ${imgui_SOURCE_DIR}/imgui_draw.cpp
-    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
-    ${imgui_SOURCE_DIR}/imgui_tables.cpp
-    ${imgui_SOURCE_DIR}/imgui_demo.cpp
-)
-target_include_directories(ImGui-SFML SYSTEM PUBLIC
-    ${imgui_SOURCE_DIR}
-    ${imguisfml_SOURCE_DIR}
-)
-target_link_libraries(ImGui-SFML PUBLIC
-    sfml-graphics
-    sfml-window
-    sfml-system
-)
-target_compile_definitions(ImGui-SFML PUBLIC IMGUI_USER_CONFIG="${imguisfml_SOURCE_DIR}/imconfig-SFML.h")
-# Suprima warning-urile din bibliotecile externe
-if(MSVC)
-    target_compile_options(ImGui-SFML PRIVATE /W0)
-else()
-    target_compile_options(ImGui-SFML PRIVATE -w)
-endif()
-# ImGui-SFML.cpp are un bug cu C++23/MSVC: sf::U8String nu e convertibil la std::basic_string<uint8_t>
-# Fix: patch direct in sursa (un reinterpret al tipului)
-target_compile_definitions(ImGui-SFML PRIVATE _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING)
 
 ###############################################################################
 
@@ -167,30 +169,32 @@ target_include_directories(${MAIN_EXECUTABLE_NAME} SYSTEM PRIVATE
 
 ###############################################################################
 
-# GUI executable (SFML + ImGui)
-set(GUI_EXECUTABLE_NAME "oop_gui")
+if(BUILD_GUI)
+    # GUI executable (SFML + ImGui)
+    set(GUI_EXECUTABLE_NAME "oop_gui")
 
-add_executable(${GUI_EXECUTABLE_NAME}
-    main_gui.cpp
-)
-target_sources(${GUI_EXECUTABLE_NAME}
-    PRIVATE
-        src/Locatie.cpp
-        src/Resursa.cpp
-        src/EchipaInterventie.cpp
-        src/Incident.cpp
-        src/CentruComanda.cpp
-)
-target_include_directories(${GUI_EXECUTABLE_NAME} PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-)
-target_include_directories(${GUI_EXECUTABLE_NAME} SYSTEM PRIVATE
-    ext
-)
-target_link_libraries(${GUI_EXECUTABLE_NAME} PRIVATE
-    ImGui-SFML
-)
-set_compiler_flags(RUN_SANITIZERS OFF TARGET_NAMES ${GUI_EXECUTABLE_NAME})
+    add_executable(${GUI_EXECUTABLE_NAME}
+        main_gui.cpp
+    )
+    target_sources(${GUI_EXECUTABLE_NAME}
+        PRIVATE
+            src/Locatie.cpp
+            src/Resursa.cpp
+            src/EchipaInterventie.cpp
+            src/Incident.cpp
+            src/CentruComanda.cpp
+    )
+    target_include_directories(${GUI_EXECUTABLE_NAME} PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+    )
+    target_include_directories(${GUI_EXECUTABLE_NAME} SYSTEM PRIVATE
+        ext
+    )
+    target_link_libraries(${GUI_EXECUTABLE_NAME} PRIVATE
+        ImGui-SFML
+    )
+    set_compiler_flags(RUN_SANITIZERS OFF TARGET_NAMES ${GUI_EXECUTABLE_NAME})
+endif()
 
 ###############################################################################
 
