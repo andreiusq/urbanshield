@@ -109,7 +109,7 @@ int main() {
 
     // --- 6. Stare inițială ---
     std::cout << "\n--- Stare initiala centru de comanda ---\n";
-    std::cout << "\nNu de alta, da' eu n-as citi atata yap de la un student\n"
+    std::cout << "\nNu de alta, da' eu n-as citi atata yap de la un student\n";
     std::cout << centru;
 
     std::cout << "Echipe disponibile: " << centru.numarEchipeDisponibile() << "\n";

@@ -7,13 +7,11 @@ EchipaInterventie::EchipaInterventie(int id, const std::string& nume,
     : idEchipa(id), numeEchipa(nume), specializare(spec),
       locatieCurenta(loc), resurse(), disponibila(true) {}
 
-// Regula celor 3 - constructor de copiere
 EchipaInterventie::EchipaInterventie(const EchipaInterventie& other)
     : idEchipa(other.idEchipa), numeEchipa(other.numeEchipa),
       specializare(other.specializare), locatieCurenta(other.locatieCurenta),
       resurse(other.resurse), disponibila(other.disponibila) {}
 
-// Regula celor 3 - operator= de copiere
 EchipaInterventie& EchipaInterventie::operator=(const EchipaInterventie& other) {
     if (this != &other) {
         idEchipa = other.idEchipa;
@@ -26,7 +24,6 @@ EchipaInterventie& EchipaInterventie::operator=(const EchipaInterventie& other) 
     return *this;
 }
 
-// Regula celor 3 - destructor
 EchipaInterventie::~EchipaInterventie() {
     resurse.clear();
 }
