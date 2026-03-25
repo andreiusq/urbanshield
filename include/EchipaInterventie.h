@@ -32,7 +32,7 @@ public:
 
     void adaugaResursa(const Resursa& r);
     void seteazaDisponibila(bool status);
-    void actualizeazaLocatie(const Locatie& novaLoc);
+    void actualizeazaLocatie(const Locatie& novaLoc) { locatieCurenta = novaLoc; }
     int totalResurseDisponibile() const;
     bool areResursaSuficienta(const std::string& tip, int cantNecesara) const;
     void alocaResurse(const std::string& tip, int cant);

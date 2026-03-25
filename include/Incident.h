@@ -21,14 +21,14 @@ public:
              const Locatie& loc, const std::string& ts,
              const std::string& desc = "");
 
-    int getId() const;
-    const std::string& getTip() const;
-    int getSeveritate() const;
-    const Locatie& getLocatie() const;
-    const std::string& getTimestamp() const;
-    bool esteRezolvat() const;
+    int getId() const { return idIncident; }
+    const std::string& getTip() const { return tipIncident; }
+    int getSeveritate() const { return nivelSeveritate; }
+    const Locatie& getLocatie() const { return locatie; }
+    const std::string& getTimestamp() const { return timestamp; }
+    bool esteRezolvat() const { return rezolvat; }
     int getPrioritate() const;
-    const std::string& getDescriere() const;
+    const std::string& getDescriere() const { return descriere; }
 
     void marcheazaRezolvat();
     void actualizeazaSeveritate(int nouaSeveritate);

@@ -12,9 +12,9 @@ class Locatie {
 public:
     Locatie(double lat, double lon, const std::string& adr);
 
-    double getLatitudine() const;
-    double getLongitudine() const;
-    const std::string& getAdresa() const;
+    double getLatitudine() const { return latitudine; }
+    double getLongitudine() const { return longitudine; }
+    const std::string& getAdresa() const { return adresa; }
 
     double distantaFata(const Locatie& alta) const;
     bool esteInZona(const Locatie& centru, double razaKm) const;

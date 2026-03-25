@@ -87,8 +87,8 @@ std::vector<Incident> CentruComanda::getIncidentePrioritizate() const {
 // alocare inteligenta (dar PROASTA) de echipa la incident
 bool CentruComanda::alocaEchipaLaIncident(int idIncident) {
     // Cauta incidentul
-    Incident* incPtr = nullptr;
-    for (auto& inc : incidente) {
+    const Incident* incPtr = nullptr;
+    for (const auto& inc : incidente) {
         if (inc.getId() == idIncident && !inc.esteRezolvat()) {
             incPtr = &inc;
             break;

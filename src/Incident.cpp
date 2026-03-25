@@ -24,15 +24,7 @@ int Incident::calculeazaPrioritate() const {
     int g = (it != greutate.end()) ? it->second : 10;
     return nivelSeveritate * 10 + g;
 }
-
-int Incident::getId() const { return idIncident; }
-const std::string& Incident::getTip() const { return tipIncident; }
-int Incident::getSeveritate() const { return nivelSeveritate; }
-const Locatie& Incident::getLocatie() const { return locatie; }
-const std::string& Incident::getTimestamp() const { return timestamp; }
-bool Incident::esteRezolvat() const { return rezolvat; }
 int Incident::getPrioritate() const { return calculeazaPrioritate(); }
-const std::string& Incident::getDescriere() const { return descriere; }
 
 void Incident::marcheazaRezolvat() {
     rezolvat = true;

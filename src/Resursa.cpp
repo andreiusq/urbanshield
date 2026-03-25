@@ -7,12 +7,6 @@ Resursa::Resursa(const std::string& den, int cant, const std::string& unit)
         throw std::invalid_argument("Cantitatea nu poate fi negativa.");
 }
 
-const std::string& Resursa::getDenumire() const { return denumire; }
-int Resursa::getCantitate() const { return cantitate; }
-const std::string& Resursa::getUnitatea() const { return unitate; }
-
-bool Resursa::esteDisponibila() const { return cantitate > 0; }
-
 void Resursa::consuma(int cant) {
     if (cant <= 0)
         throw std::invalid_argument("Cantitatea consumata trebuie sa fie pozitiva.");

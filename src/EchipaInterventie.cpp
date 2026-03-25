@@ -47,10 +47,6 @@ void EchipaInterventie::seteazaDisponibila(bool status) {
     disponibila = status;
 }
 
-void EchipaInterventie::actualizeazaLocatie(const Locatie& novaLoc) {
-    locatieCurenta = novaLoc;
-}
-
 int EchipaInterventie::totalResurseDisponibile() const {
     return std::accumulate(resurse.begin(), resurse.end(), 0,
                            [](int sum, const Resursa& r) {
@@ -66,6 +62,7 @@ bool EchipaInterventie::areResursaSuficienta(const std::string& tip, int cantNec
     return false;
 }
 
+// cppcheck-suppress unusedFunction
 void EchipaInterventie::alocaResurse(const std::string& tip, int cant) {
     for (auto& r : resurse) {
         if (r.getDenumire() == tip) {

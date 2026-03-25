@@ -12,11 +12,11 @@ class Resursa {
 public:
     Resursa(const std::string& den, int cant, const std::string& unit);
 
-    const std::string& getDenumire() const;
-    int getCantitate() const;
-    const std::string& getUnitatea() const;
+    const std::string& getDenumire() const { return denumire; }
+    int getCantitate() const { return cantitate; }
+    const std::string& getUnitatea() const { return unitate; }
 
-    bool esteDisponibila() const;
+    bool esteDisponibila() const { return cantitate > 0; }
     void consuma(int cant);
     void reincarcare(int cant);
 

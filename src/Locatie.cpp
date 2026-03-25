@@ -9,10 +9,6 @@
 Locatie::Locatie(double lat, double lon, const std::string& adr)
     : latitudine(lat), longitudine(lon), adresa(adr) {}
 
-double Locatie::getLatitudine() const { return latitudine; }
-double Locatie::getLongitudine() const { return longitudine; }
-const std::string& Locatie::getAdresa() const { return adresa; }
-
 double Locatie::distantaFata(const Locatie& alta) const {
     // Aproximare plana: 1 grad latitudine ~ 111 km, 1 grad longitudine ~ 111 * cos(lat) km
     const double KM_PER_DEG_LAT = 111.0;
