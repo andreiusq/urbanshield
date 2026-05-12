@@ -124,7 +124,8 @@ int CentruComanda::gasesteEchipaOptima(const Incident& inc) const {
         }
 
         if (const auto* toxic = dynamic_cast<const IncidentToxic*>(&inc)) {
-            if (e.areResursaSuficienta(toxic->resursaCritica(), toxic->cantitateMinimaIzolare()))
+            if (e.areResursaSuficienta(IncidentToxic::resursaCritica(),
+                                       toxic->cantitateMinimaIzolare()))
                 scor += 30.0;
             else
                 scor -= 45.0;

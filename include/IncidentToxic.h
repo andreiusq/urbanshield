@@ -23,7 +23,7 @@ public:
     std::string specializareNecesara() const override;
     std::vector<std::string> resurseCritice() const override;
 
-    const std::string& resursaCritica() const;
+    static const std::string& resursaCritica();
     int cantitateMinimaIzolare() const;
 };
 

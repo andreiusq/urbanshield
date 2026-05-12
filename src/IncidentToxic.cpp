@@ -22,7 +22,7 @@ std::vector<std::string> IncidentToxic::resurseCritice() const {
     return {resursaCritica()};
 }
 
-const std::string& IncidentToxic::resursaCritica() const {
+const std::string& IncidentToxic::resursaCritica() {
     static const std::string resursa = "combinezoane_hazmat";
     return resursa;
 }
