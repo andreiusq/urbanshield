@@ -18,6 +18,7 @@
 #include "include/IncidentCutremur.h"
 #include "include/IncidentIncendiu.h"
 #include "include/IncidentInundatie.h"
+#include "include/IncidentPanicaPublica.h"
 #include "include/IncidentToxic.h"
 #include "include/CentruComanda.h"
 
@@ -40,6 +41,7 @@ static ImVec4 culoareTip(const std::string& tip) {
     if (tip == "CUTREMUR")    return {0.9f, 0.6f, 0.1f, 1.f};
     if (tip == "INUNDATIE")   return {0.2f, 0.5f, 1.0f, 1.f};
     if (tip == "ACCIDENT")    return {0.8f, 0.8f, 0.2f, 1.f};
+    if (tip == "PANICA_PUBLICA") return {0.9f, 0.2f, 0.5f, 1.f};
     return {0.8f, 0.8f, 0.8f, 1.f};
 }
 
@@ -103,6 +105,8 @@ struct AppState {
             "2026-03-13T09:00", "Cutremur 6.2 Richter", 6.2, 12));
         centru.adaugaIncident(IncidentInundatie(105, 2, sectorul3,
             "2026-03-13T09:10", "Inundatii subsoluri Rahova", 3));
+        centru.adaugaIncident(IncidentPanicaPublica(106, 3, centruOras,
+            "2026-03-13T09:20", "Panica dupa replica seismica", 120));
 
         log("Sistem initializat cu date demo.");
     }

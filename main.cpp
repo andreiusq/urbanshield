@@ -8,6 +8,7 @@
 #include "include/IncidentCutremur.h"
 #include "include/IncidentIncendiu.h"
 #include "include/IncidentInundatie.h"
+#include "include/IncidentPanicaPublica.h"
 #include "include/IncidentToxic.h"
 #include "include/Locatie.h"
 #include "include/Resursa.h"
@@ -83,6 +84,8 @@ static int ruleazaDemoUrbanShield() {
                           "Cutremur 6.2 Richter, multiple cladiri avariate", 6.2, 12);
     IncidentInundatie inc5(105, 2, sectorul3, "2026-03-13T09:10",
                            "Inundatii subsoluri cartier Rahova", 3);
+    IncidentPanicaPublica inc6(106, 3, centruOras, "2026-03-13T09:20",
+                               "Panica in zona centrala dupa replica seismica", 120);
 
     std::cout << "--- Incident creat prin ierarhie polimorfica ---\n";
     std::cout << inc1 << "\n\n";
@@ -101,6 +104,7 @@ static int ruleazaDemoUrbanShield() {
     centru.adaugaIncident(inc3);
     centru.adaugaIncident(inc4);
     centru.adaugaIncident(inc5);
+    centru.adaugaIncident(inc6);
 
     CentruComanda copieCentru("Copie temporara", centruOras);
     copieCentru = centru;

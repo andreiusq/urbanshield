@@ -152,6 +152,7 @@ target_sources(${MAIN_EXECUTABLE_NAME}
         src/IncidentCutremur.cpp
         src/IncidentAccident.cpp
         src/IncidentInundatie.cpp
+        src/IncidentPanicaPublica.cpp
         src/CentruComanda.cpp
         src/ExceptiiUrbanShield.cpp
 )
@@ -193,6 +194,7 @@ if(BUILD_GUI)
             src/IncidentCutremur.cpp
             src/IncidentAccident.cpp
             src/IncidentInundatie.cpp
+            src/IncidentPanicaPublica.cpp
             src/CentruComanda.cpp
             src/ExceptiiUrbanShield.cpp
     )
