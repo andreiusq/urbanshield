@@ -58,6 +58,7 @@ int CentruComanda::numarEchipeDisponibile() const {
                             [](const EchipaInterventie& e) { return e.esteDisponibila(); }));
 }
 
+// cppcheck-suppress unusedFunction
 int CentruComanda::numarEchipe() const {
     return static_cast<int>(echipe.size());
 }
@@ -67,6 +68,7 @@ int CentruComanda::numarIncidenteActive() const {
                             [](const auto& i) { return !i->esteRezolvat(); }));
 }
 
+// cppcheck-suppress unusedFunction
 const std::vector<EchipaInterventie>& CentruComanda::getEchipe() const {
     return echipe;
 }
@@ -229,6 +231,7 @@ void CentruComanda::simuleazaEvolutie(int pasi) {
     }
 }
 
+// cppcheck-suppress unusedFunction
 void CentruComanda::genereazaRaport() const {
     std::cout << *this;
     std::cout << "Echipe disponibile: " << numarEchipeDisponibile() << "\n"

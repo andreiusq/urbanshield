@@ -32,6 +32,7 @@ void Incident::marcheazaRezolvat() {
     rezolvat = true;
 }
 
+// cppcheck-suppress unusedFunction
 void Incident::actualizeazaSeveritate(int nouaSeveritate) {
     if (!esteSeveritateValida(nouaSeveritate))
         throw DateInvalideException("Severitatea trebuie sa fie intre 1 si 5.");
