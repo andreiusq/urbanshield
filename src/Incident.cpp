@@ -1,48 +1,81 @@
 #include "Incident.h"
-#include <map>
-#include <stdexcept>
+#include "ExceptiiUrbanShield.h"
+#include <algorithm>
 
-Incident::Incident(int id, const std::string& tip, int severitate,
-                   const Locatie& loc, const std::string& ts,
-                   const std::string& desc)
-    : idIncident(id), tipIncident(tip), nivelSeveritate(severitate),
-      locatie(loc), timestamp(ts), rezolvat(false), descriere(desc) {
-    if (severitate < 1 || severitate > 5)
-        throw std::invalid_argument("Severitatea trebuie sa fie intre 1 si 5.");
+int Incident::totalIncidenteCreate = 0;
+
+Incident::Incident(int id, int severitate, const Locatie& loc,
+                   const std::string& ts, const std::string& desc)
+    : idIncident(id), nivelSeveritate(severitate), locatie(loc),
+      timestamp(ts), rezolvat(false), descriere(desc) {
+    if (!esteSeveritateValida(severitate))
+        throw DateInvalideException("Severitatea trebuie sa fie intre 1 si 5.");
+    ++totalIncidenteCreate;
 }
 
-int Incident::calculeazaPrioritate() const {
-    // Greutate dupa tip: incendii si scurgeri toxice au prioritate mai mare
-    static const std::map<std::string, int> greutate = {
-        {"INCENDIU",      30},
-        {"TOXIC_SPILL",   30},
-        {"CUTREMUR",      25},
-        {"INUNDATIE",     20},
-        {"ACCIDENT",      10}
-    };
-    auto it = greutate.find(tipIncident);
-    int g = (it != greutate.end()) ? it->second : 10;
-    return nivelSeveritate * 10 + g;
+Incident::Incident(const Incident& other)
+    : idIncident(other.idIncident), nivelSeveritate(other.nivelSeveritate),
+      locatie(other.locatie), timestamp(other.timestamp),
+      rezolvat(other.rezolvat), descriere(other.descriere) {
+    ++totalIncidenteCreate;
 }
-int Incident::getPrioritate() const { return calculeazaPrioritate(); }
+
+int Incident::getPrioritate() const {
+    return nivelSeveritate * 10 + greutatePrioritate() + calculeazaImpactOperational();
+}
+
+int Incident::calculeazaImpactOperational() const {
+    return nivelSeveritate * impactOperationalSpecific();
+}
 
 void Incident::marcheazaRezolvat() {
     rezolvat = true;
 }
 
 void Incident::actualizeazaSeveritate(int nouaSeveritate) {
-    if (nouaSeveritate < 1 || nouaSeveritate > 5)
-        throw std::invalid_argument("Severitatea trebuie sa fie intre 1 si 5.");
+    if (!esteSeveritateValida(nouaSeveritate))
+        throw DateInvalideException("Severitatea trebuie sa fie intre 1 si 5.");
     nivelSeveritate = nouaSeveritate;
 }
 
+void Incident::escaladeazaFaraInterventie() {
+    nivelSeveritate = std::clamp(
+        nivelSeveritate + crestereSeveritateFaraInterventie(), 1, 5);
+}
+
+void Incident::aplicaInterventie() {
+    nivelSeveritate = std::clamp(
+        nivelSeveritate - reducereSeveritateInterventie(), 1, 5);
+    if (nivelSeveritate == 1)
+        marcheazaRezolvat();
+}
+
+bool Incident::necesitaInterventieUrgenta() const {
+    return !rezolvat && nivelSeveritate >= 4;
+}
+
+void Incident::afiseaza(std::ostream& os) const {
+    os << "Incident[" << idIncident << "] " << getTip()
+       << " | Severitate: " << nivelSeveritate
+       << "/5 | Prioritate: " << getPrioritate()
+       << " | Impact operational: " << calculeazaImpactOperational() << "\n"
+       << "  Locatie:      " << locatie << "\n"
+       << "  Timestamp:    " << timestamp << "\n"
+       << "  Rezolvat:     " << (rezolvat ? "DA" : "NU") << "\n"
+       << "  Specializare: " << specializareNecesara() << "\n"
+       << "  Descriere:    " << descriere;
+    afiseazaDetaliiSpecifice(os);
+}
+
+bool Incident::esteSeveritateValida(int severitate) {
+    return severitate >= 1 && severitate <= 5;
+}
+
+int Incident::getTotalIncidenteCreate() {
+    return totalIncidenteCreate;
+}
+
 std::ostream& operator<<(std::ostream& os, const Incident& inc) {
-    os << "Incident[" << inc.idIncident << "] " << inc.tipIncident
-       << " | Severitate: " << inc.nivelSeveritate
-       << "/5 | Prioritate: " << inc.calculeazaPrioritate() << "\n"
-       << "  Locatie:   " << inc.locatie << "\n"
-       << "  Timestamp: " << inc.timestamp << "\n"
-       << "  Rezolvat:  " << (inc.rezolvat ? "DA" : "NU") << "\n"
-       << "  Descriere: " << inc.descriere;
+    inc.afiseaza(os);
     return os;
 }
