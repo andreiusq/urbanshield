@@ -1,4 +1,5 @@
 #include "EchipaInterventie.h"
+#include "ExceptiiUrbanShield.h"
 #include <algorithm>
 #include <numeric>
 
@@ -72,7 +73,7 @@ void EchipaInterventie::alocaResurse(const std::string& tip, int cant) {
             return;
         }
     }
-    throw std::runtime_error("Resursa '" + tip + "' nu exista in echipa " + numeEchipa);
+    throw EntitateNegasitaException("Resursa '" + tip + "' nu exista in echipa " + numeEchipa);
 }
 
 std::ostream& operator<<(std::ostream& os, const EchipaInterventie& e) {

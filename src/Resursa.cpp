@@ -1,23 +1,23 @@
 #include "Resursa.h"
-#include <stdexcept>
+#include "ExceptiiUrbanShield.h"
 
 Resursa::Resursa(const std::string& den, int cant, const std::string& unit)
     : denumire(den), cantitate(cant), unitate(unit) {
     if (cant < 0)
-        throw std::invalid_argument("Cantitatea nu poate fi negativa.");
+        throw DateInvalideException("Cantitatea nu poate fi negativa.");
 }
 
 void Resursa::consuma(int cant) {
     if (cant <= 0)
-        throw std::invalid_argument("Cantitatea consumata trebuie sa fie pozitiva.");
+        throw DateInvalideException("Cantitatea consumata trebuie sa fie pozitiva.");
     if (cant > cantitate)
-        throw std::runtime_error("Resursa insuficienta: " + denumire);
+        throw ResursaInsuficientaException("Resursa insuficienta: " + denumire);
     cantitate -= cant;
 }
 
 void Resursa::reincarcare(int cant) {
     if (cant <= 0)
-        throw std::invalid_argument("Cantitatea de reincarcare trebuie sa fie pozitiva.");
+        throw DateInvalideException("Cantitatea de reincarcare trebuie sa fie pozitiva.");
     cantitate += cant;
 }
 

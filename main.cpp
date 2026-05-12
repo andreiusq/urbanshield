@@ -1,14 +1,20 @@
+#include <exception>
 #include <iostream>
+
+#include "include/CentruComanda.h"
+#include "include/EchipaInterventie.h"
+#include "include/ExceptiiUrbanShield.h"
+#include "include/IncidentAccident.h"
+#include "include/IncidentCutremur.h"
+#include "include/IncidentIncendiu.h"
+#include "include/IncidentInundatie.h"
+#include "include/IncidentToxic.h"
 #include "include/Locatie.h"
 #include "include/Resursa.h"
-#include "include/EchipaInterventie.h"
-#include "include/Incident.h"
-#include "include/CentruComanda.h"
 
-int main() {
+static int ruleazaDemoUrbanShield() {
     std::cout << "UrbanShield - Crisis Management Simulator\n";
 
-    // --- 1. Creare locatii ---
     Locatie centruOras(44.4268, 26.1025, "Centrul Orasului");
     Locatie sectorul1(44.4500, 26.0800, "Sectorul 1 - Herastrau");
     Locatie sectorul2(44.4100, 26.1300, "Sectorul 2 - Colentina");
@@ -19,14 +25,11 @@ int main() {
     std::cout << "--- Locatii create ---\n";
     std::cout << centruOras << "\n";
     std::cout << sectorul1 << "\n\n";
-
-    // Test distanta si zona
     std::cout << "Distanta Centru -> Sectorul1: "
               << centruOras.distantaFata(sectorul1) << " km\n";
     std::cout << "Sectorul2 este in 5km fata de centru? "
               << (sectorul2.esteInZona(centruOras, 5.0) ? "DA" : "NU") << "\n\n";
 
-    // --- 2. Creare resurse ---
     Resursa furtunApa("furtun_apa", 10, "buc");
     Resursa trusaMedicala("trusa_medicala", 5, "buc");
     Resursa combinezoane("combinezoane_hazmat", 8, "buc");
@@ -37,13 +40,11 @@ int main() {
     std::cout << furtunApa << "\n";
     std::cout << trusaMedicala << "\n\n";
 
-    // DEBUG IN PLM Test consum resursa
     furtunApa.consuma(2);
     std::cout << "Dupa consum 2 furtunuri: " << furtunApa << "\n";
     furtunApa.reincarcare(2);
     std::cout << "Dupa reincarcare 2 furtunuri: " << furtunApa << "\n\n";
 
-    // --- 3. Creare echipe de interventie ---
     EchipaInterventie echipa1(1, "Pompierii Rosii", "POMPIERI", bazaPompieri);
     echipa1.adaugaResursa(furtunApa);
     echipa1.adaugaResursa(generatoare);
@@ -56,7 +57,7 @@ int main() {
     echipa3.adaugaResursa(combinezoane);
     echipa3.adaugaResursa(trusaMedicala);
 
-    EchipaInterventie echipa4(4, "Salvare Montana", "SALVARE", sectorul1);
+    EchipaInterventie echipa4(4, "Salvare Urbana", "SALVARE", sectorul1);
     echipa4.adaugaResursa(franga);
     echipa4.adaugaResursa(generatoare);
 
@@ -67,34 +68,28 @@ int main() {
     std::cout << "Copie:    " << echipaRezervaPompieri.getNume()
               << " | resurse: " << echipaRezervaPompieri.totalResurseDisponibile() << "\n\n";
 
-    std::cout << "--- Regula Celor 3: operator= de copiere ---\n";
     EchipaInterventie echipaTemp(99, "Temp", "MEDICAL", centruOras);
-    echipaTemp = echipa2; 
-    std::cout << "Dupa operator=: " << echipaTemp.getNume()
+    echipaTemp = echipa2;
+    std::cout << "Dupa operator= EchipaInterventie: " << echipaTemp.getNume()
               << " | disponibila: " << (echipaTemp.esteDisponibila() ? "DA" : "NU") << "\n\n";
 
-    std::cout << "--- Detalii echipa ---\n";
-    std::cout << echipa1 << "\n";
+    IncidentIncendiu inc1(101, 4, sectorul1, "2026-03-13T08:00",
+                          "Incendiu bloc 10 etaje, 50 persoane evacuate", true);
+    IncidentToxic inc2(102, 3, sectorul2, "2026-03-13T08:15",
+                       "Scurgere acid sulfuric depozit industrial", "acid sulfuric", true);
+    IncidentAccident inc3(103, 2, sectorul3, "2026-03-13T08:30",
+                          "Coliziune multipla, 5 raniti", 5);
+    IncidentCutremur inc4(104, 5, centruOras, "2026-03-13T09:00",
+                          "Cutremur 6.2 Richter, multiple cladiri avariate", 6.2, 12);
+    IncidentInundatie inc5(105, 2, sectorul3, "2026-03-13T09:10",
+                           "Inundatii subsoluri cartier Rahova", 3);
 
-    // --- 4. Creare incidente ---
-    Incident inc1(101, "INCENDIU", 4, sectorul1, "2026-03-13T08:00",
-                  "Incendiu bloc 10 etaje, 50 persoane evacuate");
-    Incident inc2(102, "TOXIC_SPILL", 3, sectorul2, "2026-03-13T08:15",
-                  "Scurgere acid sulfuric depozit industrial");
-    Incident inc3(103, "ACCIDENT", 2, sectorul3, "2026-03-13T08:30",
-                  "Coliziune multipla autostrada, 5 raniti");
-    Incident inc4(104, "CUTREMUR", 5, centruOras, "2026-03-13T09:00",
-                  "Cutremur 6.2 Richter, multiple cladiri avariate");
-    Incident inc5(105, "INUNDATIE", 2, sectorul3, "2026-03-13T09:10",
-                  "Inundatii subsoluri cartier Rahova");
-
-    std::cout << "--- Incident creat ---\n";
+    std::cout << "--- Incident creat prin ierarhie polimorfica ---\n";
     std::cout << inc1 << "\n\n";
     std::cout << "Prioritate incident CUTREMUR: " << inc4.getPrioritate() << "\n";
     std::cout << "Prioritate incident ACCIDENT: " << inc3.getPrioritate() << "\n\n";
 
-    // --- 5. Creare Centru de Comanda ---
-    CentruComanda centru("UrbanShield HQ - Tibi tu chiar citești toate liniile de cod? ", centruOras);
+    CentruComanda centru("UrbanShield HQ", centruOras);
 
     centru.adaugaEchipa(echipa1);
     centru.adaugaEchipa(echipa2);
@@ -107,42 +102,61 @@ int main() {
     centru.adaugaIncident(inc4);
     centru.adaugaIncident(inc5);
 
-    // --- 6. Stare inițială ---
-    std::cout << "\n--- Stare initiala centru de comanda ---\n";
-    std::cout << "\nNu de alta, da' eu n-as citi atata yap de la un student\n";
-    std::cout << centru;
+    CentruComanda copieCentru("Copie temporara", centruOras);
+    copieCentru = centru;
+    std::cout << "Copie CentruComanda prin copy-and-swap: "
+              << copieCentru.numarIncidenteActive() << " incidente active\n\n";
 
+    std::cout << "--- Stare initiala centru de comanda ---\n";
+    std::cout << centru;
     std::cout << "Echipe disponibile: " << centru.numarEchipeDisponibile() << "\n";
     std::cout << "Incidente active:   " << centru.numarIncidenteActive() << "\n\n";
 
-    // --- 7. incidente prioritizate ---
     std::cout << "--- Incidente prioritizate (descrescator) ---\n";
     auto prioritizate = centru.getIncidentePrioritizate();
-    for (const auto& inc : prioritizate)
-        std::cout << "  [P=" << inc.getPrioritate() << "] "
-                  << inc.getTip() << " ID=" << inc.getId()
-                  << " Sev=" << inc.getSeveritate() << "\n";
+    for (const auto* inc : prioritizate)
+        std::cout << "  [P=" << inc->getPrioritate() << "] "
+                  << inc->getTip() << " ID=" << inc->getId()
+                  << " Sev=" << inc->getSeveritate()
+                  << " Spec=" << inc->specializareNecesara() << "\n";
     std::cout << "\n";
 
-    // --- 8. Alocare echipe la incidente ---
     std::cout << "--- Alocare echipe la cele mai critice incidente ---\n";
-    centru.alocaEchipaLaIncident(104);  // CUTREMUR - cel mai critic
-    centru.alocaEchipaLaIncident(101);  // INCENDIU
-    centru.alocaEchipaLaIncident(102);  // TOXIC_SPILL
-    std::cout << "Echipe disponibile dupa alocare: " << centru.numarEchipeDisponibile() << "\n\n";
+    centru.alocaEchipaLaIncident(104);
+    centru.alocaEchipaLaIncident(101);
+    centru.alocaEchipaLaIncident(102);
+    std::cout << "Echipe disponibile dupa alocare: "
+              << centru.numarEchipeDisponibile() << "\n\n";
 
-    // --- 9. simulare in 2 pasi simuleazaEvolutia(@pasi) ---
     centru.simuleazaEvolutie(2);
 
-    // --- 10. verific areResursaSuficienta ---
     std::cout << "--- Verificare resurse echipa ---\n";
     std::cout << "Echipa1 are 5 furtunuri? "
               << (echipa1.areResursaSuficienta("furtun_apa", 5) ? "DA" : "NU") << "\n";
     std::cout << "Echipa1 are combinezoane? "
               << (echipa1.areResursaSuficienta("combinezoane_hazmat", 1) ? "DA" : "NU") << "\n\n";
 
+    try {
+        Resursa apa("apa", 1, "buc");
+        apa.consuma(5);
+    } catch (const UrbanShieldException& ex) {
+        std::cout << "Exceptie UrbanShield prinsa in main: " << ex.what() << "\n";
+    }
 
-    std::cout << "Simulare finalizată vărule.";
+    std::cout << "Incidente create/clonate in sesiune: "
+              << Incident::getTotalIncidenteCreate() << "\n";
+    std::cout << "Simulare finalizata.\n";
 
     return 0;
+}
+
+int main() {
+    try {
+        return ruleazaDemoUrbanShield();
+    } catch (const UrbanShieldException& ex) {
+        std::cerr << "Eroare UrbanShield: " << ex.what() << "\n";
+    } catch (const std::exception& ex) {
+        std::cerr << "Eroare neasteptata: " << ex.what() << "\n";
+    }
+    return 1;
 }
