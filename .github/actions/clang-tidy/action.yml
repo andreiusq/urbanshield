@@ -4,6 +4,9 @@ description: 'Install and run clang-tidy'
 runs:
   using: "composite"
   steps:
+    - name: Install native dependencies
+      uses: ./.github/actions/install-packages
+
     - name: Install clang-tidy
       shell: bash
       run: |

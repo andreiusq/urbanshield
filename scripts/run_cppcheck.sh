@@ -8,6 +8,7 @@ cppcheck --enable=all \
     -i"${FETCHCONTENT_BASE_DIR:-build/_deps}" --suppress="*:${FETCHCONTENT_BASE_DIR:-build/_deps}/*" \
     -i"${BUILD_DIR:-build}" --suppress="*:${BUILD_DIR:-build}/*" \
     -i"${EXT_DIR:-ext}" --suppress="*:${EXT_DIR:-ext}/*" \
+    --suppress="unusedFunction:*include/*.h" \
     --suppress=missingIncludeSystem \
     --suppress=unmatchedSuppression \
     --suppress=useStlAlgorithm \

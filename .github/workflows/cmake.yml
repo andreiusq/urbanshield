@@ -152,7 +152,7 @@ jobs:
             cxx: g++-13
             # renovate: depName=macos
             name: "macOS 14 GCC 13"
-            cmake_flags: "-DBUILD_SHARED_LIBS=OFF"
+            cmake_flags: "-DBUILD_SHARED_LIBS=OFF -DBUILD_GUI=OFF"
             cmake_generator: Ninja
 
             # renovate: depName=windows
