@@ -33,14 +33,14 @@ Sistemul modeleaza incidente reale, aloca echipe de interventie, gestioneaza res
 
 ### T2
 
-- [ ] separare `.h/.hpp` si `.cpp`
-- [ ] baza + minim 3 derivate in aceeasi ierarhie
-- [ ] functii virtuale pure specifice domeniului
-- [ ] clone (`virtual constructor`)
-- [ ] container cu pointeri la baza si apel polimorfic
-- [ ] `dynamic_cast` cu sens
-- [ ] ierarhie proprie de exceptii (minim 3)
-- [ ] `static`, STL, `const`, functii de nivel inalt
+- [x] separare `.h/.hpp` si `.cpp`
+- [x] baza + minim 3 derivate in aceeasi ierarhie
+- [x] functii virtuale pure specifice domeniului
+- [x] clone (`virtual constructor`)
+- [x] container cu pointeri la baza si apel polimorfic
+- [x] `dynamic_cast` cu sens
+- [x] ierarhie proprie de exceptii (minim 3)
+- [x] `static`, STL, `const`, functii de nivel inalt
 - [ ] commit separat cu clasa derivata noua integrata
 
 ### T3
