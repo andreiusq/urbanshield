@@ -147,7 +147,13 @@ target_sources(${MAIN_EXECUTABLE_NAME}
         src/Resursa.cpp
         src/EchipaInterventie.cpp
         src/Incident.cpp
+        src/IncidentIncendiu.cpp
+        src/IncidentToxic.cpp
+        src/IncidentCutremur.cpp
+        src/IncidentAccident.cpp
+        src/IncidentInundatie.cpp
         src/CentruComanda.cpp
+        src/ExceptiiUrbanShield.cpp
 )
 
 # NOTE: Add all defined targets (e.g. executables, libraries, etc. )
@@ -182,7 +188,13 @@ if(BUILD_GUI)
             src/Resursa.cpp
             src/EchipaInterventie.cpp
             src/Incident.cpp
+            src/IncidentIncendiu.cpp
+            src/IncidentToxic.cpp
+            src/IncidentCutremur.cpp
+            src/IncidentAccident.cpp
+            src/IncidentInundatie.cpp
             src/CentruComanda.cpp
+            src/ExceptiiUrbanShield.cpp
     )
     target_include_directories(${GUI_EXECUTABLE_NAME} PUBLIC
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>

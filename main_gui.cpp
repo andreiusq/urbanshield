@@ -2,7 +2,10 @@
 #include <imgui-SFML.h>
 #include <imgui.h>
 
+#include <cstdio>
+#include <cstdlib>
 #include <iostream>
+#include <map>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -11,6 +14,11 @@
 #include "include/Resursa.h"
 #include "include/EchipaInterventie.h"
 #include "include/Incident.h"
+#include "include/IncidentAccident.h"
+#include "include/IncidentCutremur.h"
+#include "include/IncidentIncendiu.h"
+#include "include/IncidentInundatie.h"
+#include "include/IncidentToxic.h"
 #include "include/CentruComanda.h"
 
 // ─── Utilitare UI ────────────────────────────────────────────────────────────
@@ -85,16 +93,16 @@ struct AppState {
         centru.adaugaEchipa(e3);
         centru.adaugaEchipa(e4);
 
-        centru.adaugaIncident(Incident(101, "INCENDIU", 4, sectorul1,
-            "2026-03-13T08:00", "Incendiu bloc 10 etaje"));
-        centru.adaugaIncident(Incident(102, "TOXIC_SPILL", 3, sectorul2,
-            "2026-03-13T08:15", "Scurgere acid sulfuric"));
-        centru.adaugaIncident(Incident(103, "ACCIDENT", 2, sectorul3,
-            "2026-03-13T08:30", "Coliziune multipla, 5 raniti"));
-        centru.adaugaIncident(Incident(104, "CUTREMUR", 5, centruOras,
-            "2026-03-13T09:00", "Cutremur 6.2 Richter"));
-        centru.adaugaIncident(Incident(105, "INUNDATIE", 2, sectorul3,
-            "2026-03-13T09:10", "Inundatii subsoluri Rahova"));
+        centru.adaugaIncident(IncidentIncendiu(101, 4, sectorul1,
+            "2026-03-13T08:00", "Incendiu bloc 10 etaje", true));
+        centru.adaugaIncident(IncidentToxic(102, 3, sectorul2,
+            "2026-03-13T08:15", "Scurgere acid sulfuric", "acid sulfuric", true));
+        centru.adaugaIncident(IncidentAccident(103, 2, sectorul3,
+            "2026-03-13T08:30", "Coliziune multipla, 5 raniti", 5));
+        centru.adaugaIncident(IncidentCutremur(104, 5, centruOras,
+            "2026-03-13T09:00", "Cutremur 6.2 Richter", 6.2, 12));
+        centru.adaugaIncident(IncidentInundatie(105, 2, sectorul3,
+            "2026-03-13T09:10", "Inundatii subsoluri Rahova", 3));
 
         log("Sistem initializat cu date demo.");
     }
@@ -126,23 +134,24 @@ static void drawIncidente(AppState& app) {
     ImGui::TableSetupColumn("Locatie",    ImGuiTableColumnFlags_WidthStretch);
     ImGui::TableHeadersRow();
 
-    for (const auto& inc : prioritizate) {
+    for (const auto* inc : prioritizate) {
+        const std::string tip = inc->getTip();
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::Text("%d", inc.getId());
+        ImGui::Text("%d", inc->getId());
 
         ImGui::TableNextColumn();
-        ImGui::TextColored(culoareTip(inc.getTip()), "%s", inc.getTip().c_str());
+        ImGui::TextColored(culoareTip(tip), "%s", tip.c_str());
 
         ImGui::TableNextColumn();
-        ImGui::TextColored(culoareSeveritate(inc.getSeveritate()),
-                           "%d", inc.getSeveritate());
+        ImGui::TextColored(culoareSeveritate(inc->getSeveritate()),
+                           "%d", inc->getSeveritate());
 
         ImGui::TableNextColumn();
-        ImGui::Text("%d", inc.getPrioritate());
+        ImGui::Text("%d", inc->getPrioritate());
 
         ImGui::TableNextColumn();
-        ImGui::TextUnformatted(inc.getLocatie().getAdresa().c_str());
+        ImGui::TextUnformatted(inc->getLocatie().getAdresa().c_str());
     }
     ImGui::EndTable();
 
@@ -179,13 +188,10 @@ static void drawEchipe(AppState& app) {
     // Deoarece echipele sunt private in CentruComanda, afisam raportul complet
     // intr-un child scrollabil.
     ImGui::BeginChild("echipe_scroll", ImVec2(0, 0), true);
-    std::string raport = toString(app.centru);
-    // Extrage doar sectiunea de echipe (de la "Echipe inregistrate" la "Incidente")
-    auto startPos = raport.find("Echipe inregistrate");
-    auto endPos   = raport.find("Incidente inregistrate");
-    if (startPos != std::string::npos && endPos != std::string::npos) {
-        std::string sectiune = raport.substr(startPos, endPos - startPos);
-        ImGui::TextUnformatted(sectiune.c_str());
+    for (const auto& echipa : app.centru.getEchipe()) {
+        std::string detalii = toString(echipa);
+        ImGui::TextUnformatted(detalii.c_str());
+        ImGui::Separator();
     }
     ImGui::EndChild();
 
@@ -212,9 +218,9 @@ static void drawSimulare(AppState& app) {
     if (ImGui::Button("Aloca toate incidentele critice")) {
         auto prioritizate = app.centru.getIncidentePrioritizate();
         int alocate = 0;
-        for (const auto& inc : prioritizate) {
-            if (inc.getSeveritate() >= 4) {
-                if (app.centru.alocaEchipaLaIncident(inc.getId()))
+        for (const auto* inc : prioritizate) {
+            if (inc->getSeveritate() >= 4) {
+                if (app.centru.alocaEchipaLaIncident(inc->getId()))
                     ++alocate;
             }
         }
@@ -232,7 +238,7 @@ static void drawSimulare(AppState& app) {
     auto prioritizate = app.centru.getIncidentePrioritizate();
     if (!prioritizate.empty()) {
         float sumSev = 0.f;
-        for (const auto& i : prioritizate) sumSev += static_cast<float>(i.getSeveritate());
+        for (const auto* i : prioritizate) sumSev += static_cast<float>(i->getSeveritate());
         float avgSev = sumSev / static_cast<float>(prioritizate.size());
         char buf[32];
         snprintf(buf, sizeof(buf), "Sev medie: %.1f / 5", avgSev);
@@ -240,7 +246,7 @@ static void drawSimulare(AppState& app) {
     }
 
     // Bara echipe disponibile
-    int totalEchipe = 4; // fix in demo
+    int totalEchipe = app.centru.numarEchipe();
     int disponibile = app.centru.numarEchipeDisponibile();
     char buf2[32];
     snprintf(buf2, sizeof(buf2), "Echipe: %d / %d", disponibile, totalEchipe);
@@ -269,8 +275,8 @@ static void drawStatistici(AppState& app) {
 
     // Distributie pe tip - bare colorate
     std::map<std::string, int> perTip;
-    for (const auto& inc : prioritizate)
-        perTip[inc.getTip()]++;
+    for (const auto* inc : prioritizate)
+        perTip[inc->getTip()]++;
 
     ImGui::Text("Distributie incidente active pe tip:");
     for (const auto& [tip, cnt] : perTip) {
@@ -307,8 +313,8 @@ static void runHeadless() {
     AppState app;
     auto prioritizate = app.centru.getIncidentePrioritizate();
     std::cout << "Incidente prioritizate:\n";
-    for (const auto& inc : prioritizate)
-        std::cout << "  " << inc << "\n\n";
+    for (const auto* inc : prioritizate)
+        std::cout << "  " << *inc << "\n\n";
     app.centru.alocaEchipaLaIncident(104);
     app.centru.alocaEchipaLaIncident(101);
     app.centru.simuleazaEvolutie(2);
