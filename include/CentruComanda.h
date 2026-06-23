@@ -9,6 +9,7 @@
 #include "Locatie.h"
 #include "EchipaInterventie.h"
 #include "Incident.h"
+#include "ObservatorCentru.h"
 
 class CentruComanda {
     std::string numeCentru;
@@ -17,12 +18,16 @@ class CentruComanda {
     std::vector<std::unique_ptr<Incident>> incidente;
     std::map<int, int> alocariIncidentEchipa;
     int contorOperatii;
+    // Subiect Observer: observatorii sunt detinuti extern, nu copiati.
+    std::vector<ObservatorCentru*> observatori;
 
     int gasesteEchipaOptima(const Incident& inc) const;
     Incident* gasesteIncidentActiv(int idIncident);
     const Incident* gasesteIncidentActiv(int idIncident) const;
     void elibereazaEchipa(int idEchipa);
     void logOperatie(const std::string& mesaj);
+    void notifica(EvenimentCentru eveniment, const Incident* incident,
+                  const std::string& detalii) const;
 
 public:
     CentruComanda(const std::string& nume, const Locatie& loc);
@@ -31,6 +36,10 @@ public:
     ~CentruComanda();
 
     friend void swap(CentruComanda& first, CentruComanda& second) noexcept;
+
+    // Observer: inregistrare/dezabonare observatori (subiectul nu ii detine).
+    void inregistreazaObservator(ObservatorCentru* obs);
+    void dezabonezaObservator(ObservatorCentru* obs);
 
     void adaugaEchipa(const EchipaInterventie& e);
     void adaugaIncident(const Incident& inc);
@@ -42,6 +51,7 @@ public:
 
     // Functii netriviale
     std::vector<const Incident*> getIncidentePrioritizate() const;
+    const Incident* incidentCelMaiPrioritar() const;
     bool alocaEchipaLaIncident(int idIncident);
     void simuleazaEvolutie(int pasi);
     void genereazaRaport() const;

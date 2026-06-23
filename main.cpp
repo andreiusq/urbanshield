@@ -1,16 +1,16 @@
 #include <exception>
 #include <iostream>
+#include <vector>
 
+#include "include/Algoritmi.h"
 #include "include/CentruComanda.h"
 #include "include/EchipaInterventie.h"
 #include "include/ExceptiiUrbanShield.h"
-#include "include/IncidentAccident.h"
-#include "include/IncidentCutremur.h"
-#include "include/IncidentIncendiu.h"
-#include "include/IncidentInundatie.h"
-#include "include/IncidentPanicaPublica.h"
-#include "include/IncidentToxic.h"
+#include "include/FabricaIncidente.h"
+#include "include/Incident.h"
 #include "include/Locatie.h"
+#include "include/ObservatorCentru.h"
+#include "include/Registru.h"
 #include "include/Resursa.h"
 
 static int ruleazaDemoUrbanShield() {
@@ -74,37 +74,84 @@ static int ruleazaDemoUrbanShield() {
     std::cout << "Dupa operator= EchipaInterventie: " << echipaTemp.getNume()
               << " | disponibila: " << (echipaTemp.esteDisponibila() ? "DA" : "NU") << "\n\n";
 
-    IncidentIncendiu inc1(101, 4, sectorul1, "2026-03-13T08:00",
-                          "Incendiu bloc 10 etaje, 50 persoane evacuate", true);
-    IncidentToxic inc2(102, 3, sectorul2, "2026-03-13T08:15",
-                       "Scurgere acid sulfuric depozit industrial", "acid sulfuric", true);
-    IncidentAccident inc3(103, 2, sectorul3, "2026-03-13T08:30",
-                          "Coliziune multipla, 5 raniti", 5);
-    IncidentCutremur inc4(104, 5, centruOras, "2026-03-13T09:00",
-                          "Cutremur 6.2 Richter, multiple cladiri avariate", 6.2, 12);
-    IncidentInundatie inc5(105, 2, sectorul3, "2026-03-13T09:10",
-                           "Inundatii subsoluri cartier Rahova", 3);
-    IncidentPanicaPublica inc6(106, 3, centruOras, "2026-03-13T09:20",
-                               "Panica in zona centrala dupa replica seismica", 120);
+    // === SABLON FACTORY ===
+    // Incidentele nu mai sunt construite direct cu "new"/constructor, ci
+    // printr-o fabrica ce stie sa creeze orice tip inregistrat dupa nume.
+    std::cout << "--- FACTORY: creare incidente prin FabricaIncidente ---\n";
+    FabricaIncidente fabrica = FabricaIncidente::standard();
+    std::cout << "Tipuri inregistrate in fabrica: ";
+    for (const auto& tip : fabrica.tipuriDisponibile())
+        std::cout << tip << " ";
+    std::cout << "\n";
+    std::cout << "Fabrica cunoaste tipul 'CUTREMUR'? "
+              << (fabrica.cunoasteTip("CUTREMUR") ? "DA" : "NU") << "\n";
+    std::cout << "Fabrica cunoaste tipul 'TORNADA'? "
+              << (fabrica.cunoasteTip("TORNADA") ? "DA" : "NU") << "\n\n";
 
-    std::cout << "--- Incident creat prin ierarhie polimorfica ---\n";
-    std::cout << inc1 << "\n\n";
-    std::cout << "Prioritate incident CUTREMUR: " << inc4.getPrioritate() << "\n";
-    std::cout << "Prioritate incident ACCIDENT: " << inc3.getPrioritate() << "\n\n";
+    ParametriIncident pIncendiu;
+    pIncendiu.id = 101; pIncendiu.severitate = 4; pIncendiu.locatie = sectorul1;
+    pIncendiu.timestamp = "2026-03-13T08:00";
+    pIncendiu.descriere = "Incendiu bloc 10 etaje, 50 persoane evacuate";
+    pIncendiu.cladireInalta = true;
+
+    ParametriIncident pToxic;
+    pToxic.id = 102; pToxic.severitate = 3; pToxic.locatie = sectorul2;
+    pToxic.timestamp = "2026-03-13T08:15";
+    pToxic.descriere = "Scurgere acid sulfuric depozit industrial";
+    pToxic.substanta = "acid sulfuric"; pToxic.zonaIndustriala = true;
+
+    ParametriIncident pAccident;
+    pAccident.id = 103; pAccident.severitate = 2; pAccident.locatie = sectorul3;
+    pAccident.timestamp = "2026-03-13T08:30";
+    pAccident.descriere = "Coliziune multipla, 5 raniti";
+    pAccident.persoaneRanite = 5;
+
+    ParametriIncident pCutremur;
+    pCutremur.id = 104; pCutremur.severitate = 5; pCutremur.locatie = centruOras;
+    pCutremur.timestamp = "2026-03-13T09:00";
+    pCutremur.descriere = "Cutremur 6.2 Richter, multiple cladiri avariate";
+    pCutremur.magnitudine = 6.2; pCutremur.cladiriAvariate = 12;
+
+    ParametriIncident pInundatie;
+    pInundatie.id = 105; pInundatie.severitate = 2; pInundatie.locatie = sectorul3;
+    pInundatie.timestamp = "2026-03-13T09:10";
+    pInundatie.descriere = "Inundatii subsoluri cartier Rahova";
+    pInundatie.zoneAfectate = 3;
+
+    ParametriIncident pPanica;
+    pPanica.id = 106; pPanica.severitate = 3; pPanica.locatie = centruOras;
+    pPanica.timestamp = "2026-03-13T09:20";
+    pPanica.descriere = "Panica in zona centrala dupa replica seismica";
+    pPanica.persoaneExpuse = 120;
+
+    auto inc1 = fabrica.creeaza("INCENDIU", pIncendiu);
+    std::cout << "--- Incident creat prin FACTORY ---\n";
+    std::cout << *inc1 << "\n\n";
+    std::cout << "Prioritate incident creat prin fabrica 'CUTREMUR': "
+              << fabrica.creeaza("CUTREMUR", pCutremur)->getPrioritate() << "\n\n";
+
+    // === SABLON OBSERVER ===
+    // Doi observatori concreti se aboneaza la evenimentele centrului.
+    JurnalEvenimente jurnal(std::cout);
+    AlertaSeveritate alerta(std::cout, /*pragSeveritate=*/4);
 
     CentruComanda centru("UrbanShield HQ", centruOras);
+    centru.inregistreazaObservator(&jurnal);
+    centru.inregistreazaObservator(&alerta);
 
     centru.adaugaEchipa(echipa1);
     centru.adaugaEchipa(echipa2);
     centru.adaugaEchipa(echipa3);
     centru.adaugaEchipa(echipa4);
 
-    centru.adaugaIncident(inc1);
-    centru.adaugaIncident(inc2);
-    centru.adaugaIncident(inc3);
-    centru.adaugaIncident(inc4);
-    centru.adaugaIncident(inc5);
-    centru.adaugaIncident(inc6);
+    std::cout << "--- OBSERVER: adaugarea incidentelor declanseaza notificari ---\n";
+    centru.adaugaIncident(std::move(inc1));
+    centru.adaugaIncident(fabrica.creeaza("TOXIC", pToxic));
+    centru.adaugaIncident(fabrica.creeaza("ACCIDENT", pAccident));
+    centru.adaugaIncident(fabrica.creeaza("CUTREMUR", pCutremur));
+    centru.adaugaIncident(fabrica.creeaza("INUNDATIE", pInundatie));
+    centru.adaugaIncident(fabrica.creeaza("PANICA_PUBLICA", pPanica));
+    std::cout << "\n";
 
     CentruComanda copieCentru("Copie temporara", centruOras);
     copieCentru = centru;
@@ -125,6 +172,33 @@ static int ruleazaDemoUrbanShield() {
                   << " Spec=" << inc->specializareNecesara() << "\n";
     std::cout << "\n";
 
+    // === CLASA TEMPLATE Registru<T> - a doua instantiere: Registru<const Incident*> ===
+    // Index polimorfic al incidentelor active dupa id, cu cheie extrasa
+    // dintr-un pointer (strategie de cheie personalizata).
+    std::cout << "--- Registru<const Incident*>: interogari polimorfice ---\n";
+    Registru<const Incident*> registruIncidente(
+        [](const Incident* const& inc) { return inc->getId(); });
+    for (const auto* inc : prioritizate)
+        registruIncidente.adauga(inc);
+
+    std::cout << "Incidente in registru: " << registruIncidente.dimensiune() << "\n";
+    const Incident* cutremurDinRegistru = registruIncidente.gaseste(104);
+    std::cout << "Cautare dupa cheie 104 -> " << cutremurDinRegistru->getTip()
+              << " (Sev=" << cutremurDinRegistru->getSeveritate() << ")\n";
+
+    // Functie membru template Registru::filtreaza pe incidente critice.
+    auto critice = registruIncidente.filtreaza(
+        [](const Incident* const& inc) { return inc->getSeveritate() >= 4; });
+    std::cout << "Incidente critice (Sev>=4): " << critice.size() << "\n";
+
+    // === FUNCTIE TEMPLATE maximDupa - a doua instantiere (pe Incident*) ===
+    const Incident* const* celMaiSever =
+        maximDupa(prioritizate.begin(), prioritizate.end(),
+                  [](const Incident* inc) { return inc->getSeveritate(); });
+    if (celMaiSever != nullptr)
+        std::cout << "Cel mai sever incident (maximDupa): " << (*celMaiSever)->getTip()
+                  << " ID=" << (*celMaiSever)->getId() << "\n\n";
+
     std::cout << "--- Alocare echipe la cele mai critice incidente ---\n";
     centru.alocaEchipaLaIncident(104);
     centru.alocaEchipaLaIncident(101);
@@ -134,11 +208,25 @@ static int ruleazaDemoUrbanShield() {
 
     centru.simuleazaEvolutie(2);
 
+    std::cout << "\n--- Raport operational (Registru<EchipaInterventie> + sumaDupa) ---\n";
+    centru.genereazaRaport();
+    std::cout << "\n";
+
     std::cout << "--- Verificare resurse echipa ---\n";
     std::cout << "Echipa1 are 5 furtunuri? "
               << (echipa1.areResursaSuficienta("furtun_apa", 5) ? "DA" : "NU") << "\n";
     std::cout << "Echipa1 are combinezoane? "
               << (echipa1.areResursaSuficienta("combinezoane_hazmat", 1) ? "DA" : "NU") << "\n\n";
+
+    // FUNCTIE TEMPLATE maximDupa / sumaDupa - instantieri pe tipuri numerice simple.
+    std::vector<int> severitatiInitiale = {4, 3, 2, 5, 2, 3};
+    const int* maxSev = maximDupa(severitatiInitiale.begin(), severitatiInitiale.end(),
+                                  [](int s) { return s; });
+    int totalSev = sumaDupa(severitatiInitiale.begin(), severitatiInitiale.end(),
+                            [](int s) { return s; });
+    std::cout << "Severitate maxima initiala (maximDupa<int>): "
+              << (maxSev != nullptr ? *maxSev : 0)
+              << " | suma severitati (sumaDupa<int>): " << totalSev << "\n\n";
 
     try {
         Resursa apa("apa", 1, "buc");
@@ -147,6 +235,14 @@ static int ruleazaDemoUrbanShield() {
         std::cout << "Exceptie UrbanShield prinsa in main: " << ex.what() << "\n";
     }
 
+    try {
+        fabrica.creeaza("TIP_INEXISTENT", pAccident);
+    } catch (const UrbanShieldException& ex) {
+        std::cout << "Exceptie Factory prinsa in main: " << ex.what() << "\n";
+    }
+
+    std::cout << "Evenimente jurnalizate de observator: " << jurnal.totalEvenimente() << "\n";
+    std::cout << "Alerte de severitate emise: " << alerta.totalAlerte() << "\n";
     std::cout << "Incidente create/clonate in sesiune: "
               << Incident::getTotalIncidenteCreate() << "\n";
     std::cout << "Simulare finalizata.\n";

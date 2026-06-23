@@ -1,6 +1,8 @@
 #include "CentruComanda.h"
 #include "ExceptiiUrbanShield.h"
 #include "IncidentToxic.h"
+#include "Algoritmi.h"
+#include "Registru.h"
 #include <algorithm>
 #include <iostream>
 #include <iomanip>
@@ -13,7 +15,9 @@ CentruComanda::CentruComanda(const std::string& nume, const Locatie& loc)
 CentruComanda::CentruComanda(const CentruComanda& other)
     : numeCentru(other.numeCentru), locatieCentru(other.locatieCentru),
       echipe(other.echipe), incidente(), alocariIncidentEchipa(other.alocariIncidentEchipa),
-      contorOperatii(other.contorOperatii) {
+      contorOperatii(other.contorOperatii), observatori() {
+    // Observatorii nu se copiaza: ei sunt detinuti si conectati extern,
+    // iar o copie a centrului porneste fara abonati.
     incidente.reserve(other.incidente.size());
     for (const auto& inc : other.incidente)
         incidente.push_back(inc->clone());
@@ -34,6 +38,26 @@ void swap(CentruComanda& first, CentruComanda& second) noexcept {
     swap(first.incidente, second.incidente);
     swap(first.alocariIncidentEchipa, second.alocariIncidentEchipa);
     swap(first.contorOperatii, second.contorOperatii);
+    swap(first.observatori, second.observatori);
+}
+
+void CentruComanda::inregistreazaObservator(ObservatorCentru* obs) {
+    if (obs == nullptr)
+        throw DateInvalideException("Nu se poate inregistra un observator null.");
+    if (std::find(observatori.begin(), observatori.end(), obs) == observatori.end())
+        observatori.push_back(obs);
+}
+
+// cppcheck-suppress unusedFunction
+void CentruComanda::dezabonezaObservator(ObservatorCentru* obs) {
+    observatori.erase(std::remove(observatori.begin(), observatori.end(), obs),
+                      observatori.end());
+}
+
+void CentruComanda::notifica(EvenimentCentru eveniment, const Incident* incident,
+                             const std::string& detalii) const {
+    for (auto* obs : observatori)
+        obs->laEveniment(eveniment, incident, detalii);
 }
 
 void CentruComanda::adaugaEchipa(const EchipaInterventie& e) {
@@ -51,6 +75,8 @@ void CentruComanda::adaugaIncident(std::unique_ptr<Incident> inc) {
     const std::string tip = inc->getTip();
     incidente.push_back(std::move(inc));
     logOperatie("Incident nou inregistrat: ID=" + std::to_string(id) + " tip=" + tip);
+    notifica(EvenimentCentru::IncidentInregistrat, incidente.back().get(),
+             "inregistrat in centru");
 }
 
 int CentruComanda::numarEchipeDisponibile() const {
@@ -158,6 +184,16 @@ std::vector<const Incident*> CentruComanda::getIncidentePrioritizate() const {
     return active;
 }
 
+// Foloseste functia template maximDupa pe un vector de Incident*.
+// (a doua instantiere a sablonului maximDupa, vezi si genereazaRaport)
+const Incident* CentruComanda::incidentCelMaiPrioritar() const {
+    auto active = getIncidentePrioritizate();
+    const Incident* const* gasit =
+        maximDupa(active.begin(), active.end(),
+                  [](const Incident* inc) { return inc->getPrioritate(); });
+    return gasit != nullptr ? *gasit : nullptr;
+}
+
 // alocare inteligenta de echipa la incident
 bool CentruComanda::alocaEchipaLaIncident(int idIncident) {
     if (alocariIncidentEchipa.find(idIncident) != alocariIncidentEchipa.end()) {
@@ -182,6 +218,8 @@ bool CentruComanda::alocaEchipaLaIncident(int idIncident) {
     alocariIncidentEchipa[idIncident] = echipe[idx].getId();
     logOperatie("Echipa '" + echipe[idx].getNume() + "' alocata la incident ID="
                 + std::to_string(idIncident));
+    notifica(EvenimentCentru::EchipaAlocata, incPtr,
+             "echipa '" + echipe[idx].getNume() + "'");
     return true;
 }
 
@@ -212,6 +250,7 @@ void CentruComanda::simuleazaEvolutie(int pasi) {
                     elibereazaEchipa(alocare->second);
                     incidenteRezolvate.push_back(inc.getId());
                     logOperatie("Incident ID=" + std::to_string(inc.getId()) + " rezolvat.");
+                    notifica(EvenimentCentru::IncidentRezolvat, &inc, "stabilizat complet");
                 }
                 continue;
             }
@@ -221,6 +260,9 @@ void CentruComanda::simuleazaEvolutie(int pasi) {
                 logOperatie("Incident ID=" + std::to_string(inc.getId())
                             + " s-a agravat: severitate " + std::to_string(sev)
                             + " -> " + std::to_string(inc.getSeveritate()));
+                notifica(EvenimentCentru::IncidentEscaladat, &inc,
+                         "severitate " + std::to_string(sev) + " -> "
+                         + std::to_string(inc.getSeveritate()));
             }
 
             if (inc.necesitaInterventieUrgenta())
@@ -237,6 +279,28 @@ void CentruComanda::genereazaRaport() const {
     std::cout << *this;
     std::cout << "Echipe disponibile: " << numarEchipeDisponibile() << "\n"
               << "Incidente active: " << numarIncidenteActive() << "\n";
+
+    // Instantiere Registru<EchipaInterventie>: index al echipelor dupa id,
+    // folosit pentru interogari rapide in raport.
+    Registru<EchipaInterventie> registruEchipe;
+    for (const auto& e : echipe)
+        registruEchipe.adauga(e);
+
+    // Functie membru template Registru::filtreaza + functie template sumaDupa.
+    auto disponibile = registruEchipe.filtreaza(
+        [](const EchipaInterventie& e) { return e.esteDisponibila(); });
+    int resurseDisponibile = sumaDupa(
+        disponibile.begin(), disponibile.end(),
+        [](const EchipaInterventie& e) { return e.totalResurseDisponibile(); });
+
+    std::cout << "Resurse totale in echipe disponibile: "
+              << resurseDisponibile << "\n";
+
+    const Incident* top = incidentCelMaiPrioritar();
+    if (top != nullptr)
+        std::cout << "Cel mai prioritar incident activ: " << top->getTip()
+                  << " ID=" << top->getId()
+                  << " (P=" << top->getPrioritate() << ")\n";
 }
 
 std::ostream& operator<<(std::ostream& os, const CentruComanda& cc) {

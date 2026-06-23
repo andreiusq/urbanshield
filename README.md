@@ -45,7 +45,8 @@ Sistemul modeleaza incidente reale, aloca echipe de interventie, gestioneaza res
 
 ### T3
 
-- [ ] 2 design patterns
-- [ ] clasa template cu minim 2 instantieri
-- [ ] functie template cu minim 2 instantieri
-- [ ] integrare minim 2 biblioteci externe (in afara stocarii)
+- [x] 2 design patterns (Factory: `FabricaIncidente`; Observer: `ObservatorCentru` + `JurnalEvenimente`/`AlertaSeveritate`)
+- [x] clasa template cu minim 2 instantieri (`Registru<T>`: `Registru<EchipaInterventie>`, `Registru<const Incident*>`)
+- [x] functie template cu minim 2 instantieri (`maximDupa`/`sumaDupa` pe `Incident*`, `EchipaInterventie`, `int`)
+- [x] minim 80-90% cod propriu C++
+- [ ] tag de git pe commit cu toate bifele (v0.3)

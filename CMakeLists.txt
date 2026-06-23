@@ -155,6 +155,8 @@ target_sources(${MAIN_EXECUTABLE_NAME}
         src/IncidentPanicaPublica.cpp
         src/CentruComanda.cpp
         src/ExceptiiUrbanShield.cpp
+        src/FabricaIncidente.cpp
+        src/ObservatorCentru.cpp
 )
 
 # NOTE: Add all defined targets (e.g. executables, libraries, etc. )
@@ -197,6 +199,8 @@ if(BUILD_GUI)
             src/IncidentPanicaPublica.cpp
             src/CentruComanda.cpp
             src/ExceptiiUrbanShield.cpp
+            src/FabricaIncidente.cpp
+            src/ObservatorCentru.cpp
     )
     target_include_directories(${GUI_EXECUTABLE_NAME} PUBLIC
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
